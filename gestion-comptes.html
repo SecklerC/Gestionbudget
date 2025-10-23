@@ -669,6 +669,7 @@
                                 <th>Nom du compte</th>
                                 <th>Objectif</th>
                                 <th>Montant actuel</th>
+                                <th>Taux annuel</th>
                                 <th>Progression</th>
                                 <th>Actions</th>
                             </tr>
@@ -744,6 +745,14 @@
                     <h3>Temps pour atteindre un objectif d'économie</h3>
                     
                     <div class="form-group">
+                        <label for="simGoalAccount">Compte d'épargne (optionnel)</label>
+                        <select id="simGoalAccount">
+                            <option value="">Aucun (pas d'intérêts)</option>
+                        </select>
+                        <small style="color: var(--text-secondary); display: block; margin-top: 5px;">Sélectionnez un compte pour inclure les intérêts dans le calcul</small>
+                    </div>
+
+                    <div class="form-group">
                         <label for="simGoalAmount">Objectif (€)</label>
                         <input type="number" id="simGoalAmount" step="0.01" value="5000">
                     </div>
@@ -762,6 +771,14 @@
                 <div id="simProjection" class="sim-scenario" style="display: none;">
                     <h3>Projection de vos économies futures</h3>
                     
+                    <div class="form-group">
+                        <label for="simProjectionAccount">Compte d'épargne (optionnel)</label>
+                        <select id="simProjectionAccount">
+                            <option value="">Aucun (pas d'intérêts)</option>
+                        </select>
+                        <small style="color: var(--text-secondary); display: block; margin-top: 5px;">Sélectionnez un compte pour inclure les intérêts composés</small>
+                    </div>
+
                     <div class="form-group">
                         <label for="simProjectionMonths">Période de projection</label>
                         <select id="simProjectionMonths">
@@ -803,6 +820,12 @@
                 <div class="form-group">
                     <label for="savingsAccountCurrent">Montant actuel (€)</label>
                     <input type="number" id="savingsAccountCurrent" step="0.01" value="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="savingsAccountRate">Taux d'intérêt annuel (%)</label>
+                    <input type="number" id="savingsAccountRate" step="0.01" value="0" min="0" max="100" placeholder="Ex: 2.5 pour 2.5%">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 5px;">Laissez 0 si pas d'intérêts</small>
                 </div>
 
                 <div class="form-group">
@@ -1465,10 +1488,12 @@
                     document.getElementById('savingsAccountName').value = account.name;
                     document.getElementById('savingsAccountGoal').value = account.goal;
                     document.getElementById('savingsAccountCurrent').value = account.current;
+                    document.getElementById('savingsAccountRate').value = account.rate || 0;
                 }
             } else {
                 title.textContent = 'Créer un compte d\'économies';
                 document.getElementById('savingsAccountId').value = '';
+                document.getElementById('savingsAccountRate').value = 0;
             }
 
             modal.classList.add('active');
@@ -1485,18 +1510,20 @@
             const name = document.getElementById('savingsAccountName').value;
             const goal = parseFloat(document.getElementById('savingsAccountGoal').value);
             const current = parseFloat(document.getElementById('savingsAccountCurrent').value);
+            const rate = parseFloat(document.getElementById('savingsAccountRate').value) || 0;
 
             if (id) {
                 const index = savingsAccounts.findIndex(a => a.id === id);
                 if (index !== -1) {
-                    savingsAccounts[index] = { ...savingsAccounts[index], name, goal, current };
+                    savingsAccounts[index] = { ...savingsAccounts[index], name, goal, current, rate };
                 }
             } else {
                 const newAccount = {
                     id: Date.now().toString(),
                     name,
                     goal,
-                    current
+                    current,
+                    rate
                 };
                 savingsAccounts.push(newAccount);
             }
@@ -1505,6 +1532,7 @@
             closeSavingsAccountModal();
             displaySavingsAccounts();
             updateSavingsAccountsSelect();
+            updateSimulatorAccountsSelect();
         }
 
         function deleteSavingsAccount(id) {
@@ -1513,6 +1541,7 @@
                 localStorage.setItem('savingsAccounts', JSON.stringify(savingsAccounts));
                 displaySavingsAccounts();
                 updateSavingsAccountsSelect();
+                updateSimulatorAccountsSelect();
             }
         }
 
@@ -1552,7 +1581,7 @@
             if (savingsAccounts.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" class="empty-state">
+                        <td colspan="6" class="empty-state">
                             <div>Aucun compte d'économies. Créez-en un pour commencer.</div>
                         </td>
                     </tr>
@@ -1562,6 +1591,7 @@
 
             savingsAccounts.forEach(account => {
                 const progress = Math.min((account.current / account.goal) * 100, 100);
+                const rate = account.rate || 0;
                 
                 // Version tableau (desktop)
                 const row = document.createElement('tr');
@@ -1569,6 +1599,7 @@
                     <td><strong>${account.name}</strong></td>
                     <td>${formatCurrency(account.goal)}</td>
                     <td>${formatCurrency(account.current)}</td>
+                    <td><span class="badge" style="background: #d1ecf1; color: #0c5460;">${rate.toFixed(2)}%</span></td>
                     <td>
                         <div class="progress-bar">
                             <div class="progress-fill" style="width: ${progress}%"></div>
@@ -1598,6 +1629,10 @@
                     <div class="item-card-row">
                         <span class="item-card-label">Montant actuel</span>
                         <span class="item-card-value" style="color: #11998e; font-size: 1.2em;">${formatCurrency(account.current)}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Taux annuel</span>
+                        <span class="badge" style="background: #d1ecf1; color: #0c5460;">${rate.toFixed(2)}%</span>
                     </div>
                     <div style="margin: 15px 0;">
                         <div class="progress-bar">
@@ -1886,6 +1921,34 @@
             
             document.querySelectorAll('.sim-scenario').forEach(el => el.style.display = 'none');
             document.getElementById('sim' + scenario.charAt(0).toUpperCase() + scenario.slice(1)).style.display = 'block';
+            
+            // Remplir les listes de comptes d'épargne
+            updateSimulatorAccountsSelect();
+        }
+
+        function updateSimulatorAccountsSelect() {
+            const goalSelect = document.getElementById('simGoalAccount');
+            const projectionSelect = document.getElementById('simProjectionAccount');
+            
+            if (goalSelect) {
+                goalSelect.innerHTML = '<option value="">Aucun (pas d\'intérêts)</option>';
+                savingsAccounts.forEach(account => {
+                    const option = document.createElement('option');
+                    option.value = account.id;
+                    option.textContent = `${account.name} (${account.rate || 0}% par an)`;
+                    goalSelect.appendChild(option);
+                });
+            }
+            
+            if (projectionSelect) {
+                projectionSelect.innerHTML = '<option value="">Aucun (pas d\'intérêts)</option>';
+                savingsAccounts.forEach(account => {
+                    const option = document.createElement('option');
+                    option.value = account.id;
+                    option.textContent = `${account.name} (${account.rate || 0}% par an)`;
+                    projectionSelect.appendChild(option);
+                });
+            }
         }
 
         function simulateNewRecurring() {
@@ -1923,6 +1986,7 @@
         function simulateSavingsGoal() {
             const goalAmount = parseFloat(document.getElementById('simGoalAmount').value);
             const monthlyExtra = parseFloat(document.getElementById('simMonthlyExtra').value);
+            const accountId = document.getElementById('simGoalAccount').value;
             
             const now = new Date();
             const recurring = calculateRecurringForMonth(now.getFullYear(), now.getMonth());
@@ -1933,11 +1997,40 @@
             
             let months = 0;
             let achievable = true;
+            let interestRate = 0;
+            let accountName = 'Sans intérêts';
+            
+            // Récupérer le taux d'intérêt si un compte est sélectionné
+            if (accountId) {
+                const account = savingsAccounts.find(a => a.id === accountId);
+                if (account) {
+                    interestRate = (account.rate || 0) / 100; // Convertir en décimal
+                    accountName = account.name;
+                }
+            }
             
             if (totalMonthlySavings <= 0) {
                 achievable = false;
             } else {
-                months = Math.ceil(goalAmount / totalMonthlySavings);
+                if (interestRate > 0) {
+                    // Calcul avec intérêts composés mensuels
+                    const monthlyRate = interestRate / 12;
+                    let balance = 0;
+                    months = 0;
+                    
+                    while (balance < goalAmount && months < 1200) { // Max 100 ans
+                        balance += totalMonthlySavings;
+                        balance *= (1 + monthlyRate);
+                        months++;
+                    }
+                    
+                    if (months >= 1200) {
+                        achievable = false;
+                    }
+                } else {
+                    // Calcul simple sans intérêts
+                    months = Math.ceil(goalAmount / totalMonthlySavings);
+                }
             }
             
             const years = Math.floor(months / 12);
@@ -1946,13 +2039,23 @@
             const resultDiv = document.getElementById('simSavingsGoalResult');
             
             if (achievable) {
+                const totalDeposited = totalMonthlySavings * months;
+                const totalInterest = goalAmount - totalDeposited;
+                
                 resultDiv.innerHTML = `
                     <div class="card" style="background: #d4edda;">
                         <h3>✅ Objectif réalisable !</h3>
+                        <p><strong>Compte :</strong> ${accountName}${interestRate > 0 ? ` (${(interestRate * 100).toFixed(2)}% par an)` : ''}</p>
                         <p><strong>Objectif :</strong> ${formatCurrency(goalAmount)}</p>
                         <p><strong>Économie mensuelle totale :</strong> ${formatCurrency(totalMonthlySavings)}</p>
                         <p><strong>Temps nécessaire :</strong> <span style="font-size: 1.3em; font-weight: bold;">${years > 0 ? years + ' an' + (years > 1 ? 's' : '') + ' et ' : ''}${remainingMonths} mois</span></p>
                         <p><strong>Date d'atteinte estimée :</strong> ${new Date(now.getFullYear(), now.getMonth() + months, 1).toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'})}</p>
+                        ${interestRate > 0 ? `
+                        <hr style="margin: 15px 0; border: none; border-top: 1px solid #c3e6cb;">
+                        <p><strong>Total déposé :</strong> ${formatCurrency(totalDeposited)}</p>
+                        <p><strong>Intérêts gagnés :</strong> <span style="color: #155724; font-weight: bold;">${formatCurrency(totalInterest)}</span></p>
+                        <p><small>Grâce aux intérêts composés, vous gagnez ${formatCurrency(totalInterest)} sans effort supplémentaire !</small></p>
+                        ` : ''}
                     </div>
                 `;
             } else {
@@ -1969,13 +2072,41 @@
 
         function simulateProjection() {
             const months = parseInt(document.getElementById('simProjectionMonths').value);
+            const accountId = document.getElementById('simProjectionAccount').value;
             
             const now = new Date();
             const recurring = calculateRecurringForMonth(now.getFullYear(), now.getMonth());
             const oneTime = calculateOneTimeForMonth(now.getFullYear(), now.getMonth());
             
             const monthlySavings = recurring.revenue - recurring.expenses - recurring.savings - oneTime;
-            const totalSavings = monthlySavings * months;
+            
+            let interestRate = 0;
+            let accountName = 'Sans intérêts';
+            let totalSavings = monthlySavings * months;
+            let totalInterest = 0;
+            
+            // Récupérer le taux d'intérêt si un compte est sélectionné
+            if (accountId) {
+                const account = savingsAccounts.find(a => a.id === accountId);
+                if (account) {
+                    interestRate = (account.rate || 0) / 100;
+                    accountName = account.name;
+                }
+            }
+            
+            if (interestRate > 0) {
+                // Calcul avec intérêts composés mensuels
+                const monthlyRate = interestRate / 12;
+                let balance = 0;
+                
+                for (let i = 0; i < months; i++) {
+                    balance += monthlySavings;
+                    balance *= (1 + monthlyRate);
+                }
+                
+                totalSavings = balance;
+                totalInterest = totalSavings - (monthlySavings * months);
+            }
             
             const resultDiv = document.getElementById('simProjectionResult');
             
@@ -1986,9 +2117,16 @@
             resultDiv.innerHTML = `
                 <div class="card" style="background: #d1ecf1;">
                     <h3>📊 Projection sur ${periodText}</h3>
+                    <p><strong>Compte :</strong> ${accountName}${interestRate > 0 ? ` (${(interestRate * 100).toFixed(2)}% par an)` : ''}</p>
                     <p><strong>Économies mensuelles actuelles :</strong> ${formatCurrency(monthlySavings)}</p>
                     <p><strong>Total économisé dans ${periodText} :</strong> <span style="font-size: 1.5em; font-weight: bold; color: #0c5460;">${formatCurrency(totalSavings)}</span></p>
-                    <p><small>Cette projection est basée sur vos finances actuelles et ne prend pas en compte les changements futurs.</small></p>
+                    ${interestRate > 0 ? `
+                    <hr style="margin: 15px 0; border: none; border-top: 1px solid #bee5eb;">
+                    <p><strong>Dépôts mensuels cumulés :</strong> ${formatCurrency(monthlySavings * months)}</p>
+                    <p><strong>Intérêts gagnés :</strong> <span style="color: #0c5460; font-weight: bold; font-size: 1.2em;">${formatCurrency(totalInterest)}</span></p>
+                    <p><small>Grâce aux intérêts composés, vous gagnez ${((totalInterest / (monthlySavings * months)) * 100).toFixed(1)}% de plus !</small></p>
+                    ` : ''}
+                    <p style="margin-top: 15px;"><small>Cette projection est basée sur vos finances actuelles et ne prend pas en compte les changements futurs.</small></p>
                 </div>
             `;
         }
@@ -2052,6 +2190,7 @@
             displayOneTimeExpenses();
             displaySavingsAccounts();
             updateSavingsAccountsSelect();
+            updateSimulatorAccountsSelect();
             updateDashboard();
             setTimeout(updateCharts, 100);
         }
