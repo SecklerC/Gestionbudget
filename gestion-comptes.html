@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestion de Comptes</title>
+    <link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiR2VzdGlvbiBkZSBDb21wdGVzIiwic2hvcnRfbmFtZSI6IkNvbXB0ZXMiLCJzdGFydF91cmwiOiIuIiwiZGlzcGxheSI6InN0YW5kYWxvbmUiLCJiYWNrZ3JvdW5kX2NvbG9yIjoiIzY2N2VlYSIsInRoZW1lX2NvbG9yIjoiIzY2N2VlYSIsImljb25zIjpbeyJzcmMiOiJkYXRhOmltYWdlL3N2Zyt4bWwsJTNDc3ZnIHhtbG5zPSdodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2Zycgdmlld0JveD0nMCAwIDEwMCAxMDAnJTNFJTNDcmVjdCBmaWxsPSclMjM2NjdlZWEnIHdpZHRoPScxMDAnIGhlaWdodD0nMTAwJy8lM0UlM0N0ZXh0IHk9JzUwJyBmb250LXNpemU9JzUwJyB0ZXh0LWFuY2hvcj0nbWlkZGxlJyB4PSc1MCclM0UlRjAlOUYlOTIlQjAlM0MvdGV4dCUzRSUzQy9zdmclM0UiLCJzaXplcyI6IjE5MngxOTIiLCJ0eXBlIjoiaW1hZ2Uvc3ZnK3htbCJ9XX0=">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -11,27 +13,81 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --bg-gradient-start: #667eea;
+            --bg-gradient-end: #764ba2;
+            --bg-main: white;
+            --text-primary: #333;
+            --text-secondary: #666;
+            --card-bg: white;
+            --border-color: #e0e0e0;
+            --input-bg: white;
+            --input-border: #e0e0e0;
+            --nav-bg: #f8f9fa;
+            --nav-active-bg: white;
+            --table-hover: #f8f9fa;
+            --month-item-bg: #f8f9fa;
+        }
+
+        body.dark-mode {
+            --bg-gradient-start: #1a1a2e;
+            --bg-gradient-end: #16213e;
+            --bg-main: #0f3460;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b8b8b8;
+            --card-bg: #16213e;
+            --border-color: #2a3f5f;
+            --input-bg: #1a1a2e;
+            --input-border: #2a3f5f;
+            --nav-bg: #1a1a2e;
+            --nav-active-bg: #0f3460;
+            --table-hover: #1a1a2e;
+            --month-item-bg: #1a1a2e;
+        }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             min-height: 100vh;
             padding: 20px;
+            transition: background 0.3s ease;
         }
 
         .container {
             max-width: 1200px;
             margin: 0 auto;
-            background: white;
+            background: var(--bg-main);
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             overflow: hidden;
         }
 
         header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
             color: white;
             padding: 30px;
             text-align: center;
+            position: relative;
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .theme-toggle:hover {
+            background: rgba(255,255,255,0.3);
+            transform: scale(1.1);
         }
 
         h1 {
@@ -40,10 +96,10 @@
         }
 
         nav {
-            background: #f8f9fa;
+            background: var(--nav-bg);
             padding: 0;
             display: flex;
-            border-bottom: 2px solid #e0e0e0;
+            border-bottom: 2px solid var(--border-color);
             overflow-x: auto;
         }
 
@@ -55,20 +111,20 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
-            color: #666;
+            color: var(--text-secondary);
             transition: all 0.3s;
             border-bottom: 3px solid transparent;
             min-width: 150px;
         }
 
         nav button:hover {
-            background: #e9ecef;
+            background: var(--table-hover);
         }
 
         nav button.active {
             color: #667eea;
             border-bottom-color: #667eea;
-            background: white;
+            background: var(--nav-active-bg);
         }
 
         .page {
@@ -92,15 +148,15 @@
         }
 
         .card {
-            background: white;
+            background: var(--card-bg);
             padding: 25px;
             border-radius: 15px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
         }
 
         .card h2 {
-            color: #333;
+            color: var(--text-primary);
             margin-bottom: 20px;
             font-size: 1.5em;
             display: flex;
@@ -155,21 +211,27 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
         }
 
         input, select, textarea {
             width: 100%;
             padding: 12px;
-            border: 2px solid #e0e0e0;
+            border: 2px solid var(--input-border);
             border-radius: 8px;
             font-size: 16px;
             transition: border-color 0.3s;
+            background: var(--input-bg);
+            color: var(--text-primary);
         }
 
         input:focus, select:focus, textarea:focus {
             outline: none;
             border-color: #667eea;
+        }
+
+        small {
+            color: var(--text-secondary);
         }
 
         .btn {
@@ -217,17 +279,18 @@
         th, td {
             padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #e0e0e0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-primary);
         }
 
         th {
-            background: #f8f9fa;
+            background: var(--nav-bg);
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
         }
 
         tr:hover {
-            background: #f8f9fa;
+            background: var(--table-hover);
         }
 
         .actions {
@@ -248,7 +311,7 @@
             padding: 15px;
             margin-bottom: 10px;
             border-radius: 8px;
-            background: #f8f9fa;
+            background: var(--month-item-bg);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -256,7 +319,7 @@
 
         .month-item .month-name {
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .month-item .month-amount {
@@ -275,7 +338,7 @@
         .empty-state {
             text-align: center;
             padding: 40px;
-            color: #999;
+            color: var(--text-secondary);
         }
 
         .empty-state svg {
@@ -303,7 +366,7 @@
         }
 
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             padding: 30px;
             border-radius: 15px;
             max-width: 500px;
@@ -321,6 +384,7 @@
 
         .modal-header h2 {
             margin: 0;
+            color: var(--text-primary);
         }
 
         .close-modal {
@@ -392,11 +456,11 @@
 
         .item-card {
             display: none;
-            background: #f8f9fa;
+            background: var(--month-item-bg);
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 15px;
-            border: 1px solid #e0e0e0;
+            border: 1px solid var(--border-color);
         }
 
         .item-card-row {
@@ -412,13 +476,13 @@
 
         .item-card-label {
             font-weight: 600;
-            color: #666;
+            color: var(--text-secondary);
             font-size: 0.9em;
         }
 
         .item-card-value {
             font-weight: 600;
-            color: #333;
+            color: var(--text-primary);
         }
 
         .item-card-actions {
@@ -426,11 +490,17 @@
             gap: 10px;
             margin-top: 15px;
             padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
+            border-top: 1px solid var(--border-color);
         }
 
         .item-card-actions button {
             flex: 1;
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin: 20px 0;
         }
 
         @media (max-width: 768px) {
@@ -487,6 +557,7 @@
 <body>
     <div class="container">
         <header>
+            <button class="theme-toggle" onclick="toggleTheme()" title="Changer de thème">🌓</button>
             <h1>💰 Gestion de Comptes</h1>
             <p>Gérez vos finances facilement</p>
         </header>
@@ -496,6 +567,8 @@
             <button class="nav-btn" data-page="recurring">🔄 Récurrents</button>
             <button class="nav-btn" data-page="oneTime">💳 Dépenses Ponctuelles</button>
             <button class="nav-btn" data-page="savingsAccounts">🏦 Comptes d'Économies</button>
+            <button class="nav-btn" data-page="charts">📈 Graphiques</button>
+            <button class="nav-btn" data-page="simulator">🎲 Simulateur</button>
         </nav>
 
         <!-- Page Tableau de Bord -->
@@ -605,6 +678,106 @@
                 </div>
             </div>
         </div>
+
+        <!-- Page Graphiques -->
+        <div id="charts" class="page">
+            <div class="card">
+                <h2>📈 Évolution des Économies (12 mois)</h2>
+                <div class="chart-container">
+                    <canvas id="savingsChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🥧 Répartition des Dépenses par Catégorie</h2>
+                <div class="chart-container">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📊 Revenus vs Dépenses (12 mois)</h2>
+                <div class="chart-container">
+                    <canvas id="revenueExpenseChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Simulateur -->
+        <div id="simulator" class="page">
+            <div class="card">
+                <h2>🎲 Simulateur de Scénarios</h2>
+                
+                <div class="form-group">
+                    <label for="simScenario">Choisir un scénario</label>
+                    <select id="simScenario" onchange="updateSimulatorForm()">
+                        <option value="newRecurring">Nouvelle dépense/revenu récurrent</option>
+                        <option value="savingsGoal">Temps pour atteindre un objectif</option>
+                        <option value="projection">Projection des économies futures</option>
+                    </select>
+                </div>
+
+                <!-- Scénario 1: Nouvelle dépense récurrente -->
+                <div id="simNewRecurring" class="sim-scenario">
+                    <h3>Impact d'une nouvelle dépense/revenu récurrent</h3>
+                    
+                    <div class="form-group">
+                        <label for="simNewType">Type</label>
+                        <select id="simNewType">
+                            <option value="revenue">Revenu</option>
+                            <option value="expense">Dépense</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="simNewAmount">Montant mensuel (€)</label>
+                        <input type="number" id="simNewAmount" step="0.01" value="100">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="simulateNewRecurring()">🔮 Simuler</button>
+
+                    <div id="simNewRecurringResult" style="margin-top: 20px;"></div>
+                </div>
+
+                <!-- Scénario 2: Objectif d'économie -->
+                <div id="simSavingsGoal" class="sim-scenario" style="display: none;">
+                    <h3>Temps pour atteindre un objectif d'économie</h3>
+                    
+                    <div class="form-group">
+                        <label for="simGoalAmount">Objectif (€)</label>
+                        <input type="number" id="simGoalAmount" step="0.01" value="5000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="simMonthlyExtra">Économie mensuelle supplémentaire (€)</label>
+                        <input type="number" id="simMonthlyExtra" step="0.01" value="200">
+                    </div>
+
+                    <button class="btn btn-primary" onclick="simulateSavingsGoal()">🔮 Calculer</button>
+
+                    <div id="simSavingsGoalResult" style="margin-top: 20px;"></div>
+                </div>
+
+                <!-- Scénario 3: Projection -->
+                <div id="simProjection" class="sim-scenario" style="display: none;">
+                    <h3>Projection de vos économies futures</h3>
+                    
+                    <div class="form-group">
+                        <label for="simProjectionMonths">Période de projection</label>
+                        <select id="simProjectionMonths">
+                            <option value="6">6 mois</option>
+                            <option value="12" selected>1 an</option>
+                            <option value="24">2 ans</option>
+                            <option value="60">5 ans</option>
+                        </select>
+                    </div>
+
+                    <button class="btn btn-primary" onclick="simulateProjection()">🔮 Projeter</button>
+
+                    <div id="simProjectionResult" style="margin-top: 20px;"></div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal pour Comptes d'Économies -->
@@ -679,6 +852,25 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="recurringCategory">Catégorie</label>
+                    <select id="recurringCategory" required>
+                        <option value="Salaire">💼 Salaire</option>
+                        <option value="Autre revenu">💰 Autre revenu</option>
+                        <option value="Logement">🏠 Logement</option>
+                        <option value="Alimentation">🍕 Alimentation</option>
+                        <option value="Transport">🚗 Transport</option>
+                        <option value="Santé">⚕️ Santé</option>
+                        <option value="Loisirs">🎮 Loisirs</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Éducation">📚 Éducation</option>
+                        <option value="Assurances">🛡️ Assurances</option>
+                        <option value="Abonnements">📺 Abonnements</option>
+                        <option value="Économies">💎 Économies</option>
+                        <option value="Autre">📋 Autre</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="recurringType">Type</label>
                     <select id="recurringType" required onchange="toggleSavingsAccountField()">
                         <option value="revenue">Revenu</option>
@@ -713,6 +905,12 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="recurringEndDate">Date de fin (optionnel)</label>
+                    <input type="date" id="recurringEndDate">
+                    <small style="color: #666; display: block; margin-top: 5px;">Laissez vide pour une récurrence infinie</small>
+                </div>
+
+                <div class="form-group">
                     <button type="submit" class="btn btn-success">💾 Enregistrer</button>
                     <button type="button" class="btn btn-secondary" onclick="closeRecurringModal()">Annuler</button>
                 </div>
@@ -741,6 +939,22 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="oneTimeCategory">Catégorie</label>
+                    <select id="oneTimeCategory" required>
+                        <option value="Logement">🏠 Logement</option>
+                        <option value="Alimentation">🍕 Alimentation</option>
+                        <option value="Transport">🚗 Transport</option>
+                        <option value="Santé">⚕️ Santé</option>
+                        <option value="Loisirs">🎮 Loisirs</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Éducation">📚 Éducation</option>
+                        <option value="Cadeaux">🎁 Cadeaux</option>
+                        <option value="Voyage">✈️ Voyage</option>
+                        <option value="Autre">📋 Autre</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
                     <label for="oneTimeAmount">Montant (€)</label>
                     <input type="number" id="oneTimeAmount" step="0.01" required>
                 </div>
@@ -758,22 +972,6 @@
         let recurringItems = JSON.parse(localStorage.getItem('recurringItems')) || [];
         let oneTimeExpenses = JSON.parse(localStorage.getItem('oneTimeExpenses')) || [];
         let savingsAccounts = JSON.parse(localStorage.getItem('savingsAccounts')) || [];
-
-        // Navigation
-        document.querySelectorAll('.nav-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-                
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.page).classList.add('active');
-                
-                // Mettre à jour le budget si on affiche la page des dépenses ponctuelles
-                if (btn.dataset.page === 'oneTime') {
-                    updateDashboard();
-                }
-            });
-        });
 
         // Fonctions utilitaires
         function formatCurrency(amount) {
@@ -795,13 +993,19 @@
             let expenses = 0;
             let savings = 0;
 
-            const targetDate = new Date(year, month, 1);
+            const firstDayOfMonth = new Date(year, month, 1);
+            const lastDayOfMonth = new Date(year, month + 1, 0);
 
             recurringItems.forEach(item => {
                 const startDate = new Date(item.startDate || '2000-01-01');
+                const endDate = item.endDate ? new Date(item.endDate) : null;
                 
-                // Ne comptabiliser que si la date de début est avant ou pendant le mois ciblé
-                if (startDate <= new Date(year, month + 1, 0)) { // Dernier jour du mois
+                // Vérifier si l'élément est actif pendant ce mois
+                // Il doit avoir commencé avant ou pendant le mois
+                // ET (pas de date de fin OU la date de fin est après ou pendant le mois)
+                const isActive = startDate <= lastDayOfMonth && (!endDate || endDate >= firstDayOfMonth);
+                
+                if (isActive) {
                     let amount = parseFloat(item.amount);
                     
                     if (item.frequency === 'weekly') {
@@ -926,10 +1130,12 @@
                     title.textContent = 'Modifier un élément récurrent';
                     document.getElementById('recurringId').value = item.id;
                     document.getElementById('recurringDescription').value = item.description;
+                    document.getElementById('recurringCategory').value = item.category || 'Autre';
                     document.getElementById('recurringType').value = item.type;
                     document.getElementById('recurringAmount').value = item.amount;
                     document.getElementById('recurringFrequency').value = item.frequency;
                     document.getElementById('recurringStartDate').value = item.startDate || new Date().toISOString().split('T')[0];
+                    document.getElementById('recurringEndDate').value = item.endDate || '';
                     
                     if (item.savingsAccountId) {
                         document.getElementById('recurringSavingsAccount').value = item.savingsAccountId;
@@ -941,6 +1147,7 @@
                 title.textContent = 'Ajouter un élément récurrent';
                 document.getElementById('recurringId').value = '';
                 document.getElementById('recurringStartDate').value = new Date().toISOString().split('T')[0];
+                document.getElementById('recurringEndDate').value = '';
                 toggleSavingsAccountField();
             }
 
@@ -956,27 +1163,31 @@
 
             const id = document.getElementById('recurringId').value;
             const description = document.getElementById('recurringDescription').value;
+            const category = document.getElementById('recurringCategory').value;
             const type = document.getElementById('recurringType').value;
             const amount = document.getElementById('recurringAmount').value;
             const frequency = document.getElementById('recurringFrequency').value;
             const startDate = document.getElementById('recurringStartDate').value;
+            const endDate = document.getElementById('recurringEndDate').value || null;
             const savingsAccountId = document.getElementById('recurringSavingsAccount').value || null;
 
             if (id) {
                 // Modification
                 const index = recurringItems.findIndex(i => i.id === id);
                 if (index !== -1) {
-                    recurringItems[index] = { id, description, type, amount, frequency, startDate, savingsAccountId };
+                    recurringItems[index] = { id, description, category, type, amount, frequency, startDate, endDate, savingsAccountId };
                 }
             } else {
                 // Ajout
                 const newItem = {
                     id: Date.now().toString(),
                     description,
+                    category,
                     type,
                     amount,
                     frequency,
                     startDate,
+                    endDate,
                     savingsAccountId
                 };
                 recurringItems.push(newItem);
@@ -986,6 +1197,7 @@
             closeRecurringModal();
             displayRecurringItems();
             updateDashboard();
+            updateCharts();
         }
 
         function deleteRecurring(id) {
@@ -1032,10 +1244,18 @@
                 
                 const frequencyLabel = item.frequency === 'monthly' ? 'Mensuel' : 'Hebdomadaire';
                 
+                // Vérifier si l'élément est toujours actif
+                const now = new Date();
+                const endDate = item.endDate ? new Date(item.endDate) : null;
+                const isExpired = endDate && endDate < now;
+                const statusBadge = isExpired ? '<span class="badge" style="background: #6c757d; color: white; margin-left: 5px;">Terminé</span>' : 
+                                    (item.endDate ? `<span class="badge" style="background: #ffc107; color: #000; margin-left: 5px;">Jusqu\'au ${new Date(item.endDate).toLocaleDateString('fr-FR')}</span>` : 
+                                    '<span class="badge" style="background: #28a745; color: white; margin-left: 5px;">Infini</span>');
+                
                 // Version tableau (desktop)
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${item.description}</td>
+                    <td>${item.description} ${statusBadge}</td>
                     <td><span class="badge badge-${badgeClass}">
                         ${typeLabel}
                     </span></td>
@@ -1057,6 +1277,10 @@
                     <div class="item-card-row">
                         <span class="item-card-label">Description</span>
                         <span class="item-card-value">${item.description}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Statut</span>
+                        ${statusBadge}
                     </div>
                     <div class="item-card-row">
                         <span class="item-card-label">Type</span>
@@ -1094,6 +1318,7 @@
                     document.getElementById('oneTimeId').value = expense.id;
                     document.getElementById('oneTimeDate').value = expense.date;
                     document.getElementById('oneTimeDescription').value = expense.description;
+                    document.getElementById('oneTimeCategory').value = expense.category || 'Autre';
                     document.getElementById('oneTimeAmount').value = expense.amount;
                 }
             } else {
@@ -1115,13 +1340,14 @@
             const id = document.getElementById('oneTimeId').value;
             const date = document.getElementById('oneTimeDate').value;
             const description = document.getElementById('oneTimeDescription').value;
+            const category = document.getElementById('oneTimeCategory').value;
             const amount = document.getElementById('oneTimeAmount').value;
 
             if (id) {
                 // Modification
                 const index = oneTimeExpenses.findIndex(e => e.id === id);
                 if (index !== -1) {
-                    oneTimeExpenses[index] = { id, date, description, amount };
+                    oneTimeExpenses[index] = { id, date, description, category, amount };
                 }
             } else {
                 // Ajout
@@ -1129,6 +1355,7 @@
                     id: Date.now().toString(),
                     date,
                     description,
+                    category,
                     amount
                 };
                 oneTimeExpenses.push(newExpense);
@@ -1138,6 +1365,7 @@
             closeOneTimeModal();
             displayOneTimeExpenses();
             updateDashboard();
+            updateCharts();
         }
 
         function deleteOneTime(id) {
@@ -1410,13 +1638,422 @@
             }
         }
 
+        // Mode sombre
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            const isDark = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            updateCharts(); // Redessiner les graphiques avec le bon thème
+        }
+
+        function loadTheme() {
+            const theme = localStorage.getItem('theme');
+            if (theme === 'dark') {
+                document.body.classList.add('dark-mode');
+            }
+        }
+
+        // Graphiques
+        let savingsChartInstance = null;
+        let categoryChartInstance = null;
+        let revenueExpenseChartInstance = null;
+
+        function updateCharts() {
+            updateSavingsChart();
+            updateCategoryChart();
+            updateRevenueExpenseChart();
+        }
+
+        function updateSavingsChart() {
+            const ctx = document.getElementById('savingsChart');
+            if (!ctx) return;
+
+            const now = new Date();
+            const labels = [];
+            const data = [];
+
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                
+                labels.push(getMonthName(month));
+                
+                const recurring = calculateRecurringForMonth(year, month);
+                const oneTime = calculateOneTimeForMonth(year, month);
+                const balance = recurring.revenue - recurring.expenses - recurring.savings - oneTime;
+                data.push(balance.toFixed(2));
+            }
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#e8e8e8' : '#333';
+            const gridColor = isDark ? '#2a3f5f' : '#e0e0e0';
+
+            if (savingsChartInstance) {
+                savingsChartInstance.destroy();
+            }
+
+            savingsChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Économies mensuelles (€)',
+                        data: data,
+                        borderColor: '#667eea',
+                        backgroundColor: 'rgba(102, 126, 234, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: textColor }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateCategoryChart() {
+            const ctx = document.getElementById('categoryChart');
+            if (!ctx) return;
+
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            // Calculer les dépenses par catégorie
+            const categoryData = {};
+
+            // Récurrentes
+            recurringItems.forEach(item => {
+                if (item.type === 'expense') {
+                    const startDate = new Date(item.startDate || '2000-01-01');
+                    const endDate = item.endDate ? new Date(item.endDate) : null;
+                    const firstDay = new Date(currentYear, currentMonth, 1);
+                    const lastDay = new Date(currentYear, currentMonth + 1, 0);
+                    
+                    if (startDate <= lastDay && (!endDate || endDate >= firstDay)) {
+                        let amount = parseFloat(item.amount);
+                        if (item.frequency === 'weekly') amount *= 4.33;
+                        
+                        const category = item.category || 'Autre';
+                        categoryData[category] = (categoryData[category] || 0) + amount;
+                    }
+                }
+            });
+
+            // Ponctuelles
+            oneTimeExpenses.forEach(expense => {
+                const expenseDate = new Date(expense.date);
+                if (expenseDate.getFullYear() === currentYear && expenseDate.getMonth() === currentMonth) {
+                    const category = expense.category || 'Autre';
+                    categoryData[category] = (categoryData[category] || 0) + parseFloat(expense.amount);
+                }
+            });
+
+            const labels = Object.keys(categoryData);
+            const data = Object.values(categoryData);
+
+            const colors = [
+                '#667eea', '#764ba2', '#f093fb', '#4facfe',
+                '#43e97b', '#fa709a', '#fee140', '#30cfd0',
+                '#a8edea', '#fed6e3', '#c471f5', '#12c2e9'
+            ];
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#e8e8e8' : '#333';
+
+            if (categoryChartInstance) {
+                categoryChartInstance.destroy();
+            }
+
+            categoryChartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: colors,
+                        borderWidth: 2,
+                        borderColor: isDark ? '#0f3460' : '#fff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'right',
+                            labels: { color: textColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateRevenueExpenseChart() {
+            const ctx = document.getElementById('revenueExpenseChart');
+            if (!ctx) return;
+
+            const now = new Date();
+            const labels = [];
+            const revenueData = [];
+            const expenseData = [];
+
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                
+                labels.push(getMonthName(month));
+                
+                const recurring = calculateRecurringForMonth(year, month);
+                const oneTime = calculateOneTimeForMonth(year, month);
+                
+                revenueData.push(recurring.revenue.toFixed(2));
+                expenseData.push((recurring.expenses + oneTime).toFixed(2));
+            }
+
+            const isDark = document.body.classList.contains('dark-mode');
+            const textColor = isDark ? '#e8e8e8' : '#333';
+            const gridColor = isDark ? '#2a3f5f' : '#e0e0e0';
+
+            if (revenueExpenseChartInstance) {
+                revenueExpenseChartInstance.destroy();
+            }
+
+            revenueExpenseChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Revenus (€)',
+                            data: revenueData,
+                            backgroundColor: 'rgba(17, 153, 142, 0.8)',
+                            borderColor: '#11998e',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Dépenses (€)',
+                            data: expenseData,
+                            backgroundColor: 'rgba(235, 51, 73, 0.8)',
+                            borderColor: '#eb3349',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: textColor }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        },
+                        x: {
+                            ticks: { color: textColor },
+                            grid: { color: gridColor }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Simulateur
+        function updateSimulatorForm() {
+            const scenario = document.getElementById('simScenario').value;
+            
+            document.querySelectorAll('.sim-scenario').forEach(el => el.style.display = 'none');
+            document.getElementById('sim' + scenario.charAt(0).toUpperCase() + scenario.slice(1)).style.display = 'block';
+        }
+
+        function simulateNewRecurring() {
+            const type = document.getElementById('simNewType').value;
+            const amount = parseFloat(document.getElementById('simNewAmount').value);
+            
+            const now = new Date();
+            const recurring = calculateRecurringForMonth(now.getFullYear(), now.getMonth());
+            const oneTime = calculateOneTimeForMonth(now.getFullYear(), now.getMonth());
+            
+            const currentBudget = recurring.revenue - recurring.expenses - recurring.savings - oneTime;
+            let newBudget;
+            
+            if (type === 'revenue') {
+                newBudget = currentBudget + amount;
+            } else {
+                newBudget = currentBudget - amount;
+            }
+            
+            const impact = newBudget - currentBudget;
+            const yearlyImpact = impact * 12;
+            
+            const resultDiv = document.getElementById('simNewRecurringResult');
+            resultDiv.innerHTML = `
+                <div class="card" style="background: ${impact >= 0 ? '#d4edda' : '#f8d7da'};">
+                    <h3>Résultats de la simulation</h3>
+                    <p><strong>Budget actuel :</strong> ${formatCurrency(currentBudget)}</p>
+                    <p><strong>Nouveau budget :</strong> ${formatCurrency(newBudget)}</p>
+                    <p><strong>Impact mensuel :</strong> <span style="color: ${impact >= 0 ? '#155724' : '#721c24'}; font-size: 1.2em; font-weight: bold;">${impact >= 0 ? '+' : ''}${formatCurrency(impact)}</span></p>
+                    <p><strong>Impact annuel :</strong> ${yearlyImpact >= 0 ? '+' : ''}${formatCurrency(yearlyImpact)}</p>
+                </div>
+            `;
+        }
+
+        function simulateSavingsGoal() {
+            const goalAmount = parseFloat(document.getElementById('simGoalAmount').value);
+            const monthlyExtra = parseFloat(document.getElementById('simMonthlyExtra').value);
+            
+            const now = new Date();
+            const recurring = calculateRecurringForMonth(now.getFullYear(), now.getMonth());
+            const oneTime = calculateOneTimeForMonth(now.getFullYear(), now.getMonth());
+            
+            const currentMonthlySavings = recurring.revenue - recurring.expenses - recurring.savings - oneTime;
+            const totalMonthlySavings = currentMonthlySavings + monthlyExtra;
+            
+            let months = 0;
+            let achievable = true;
+            
+            if (totalMonthlySavings <= 0) {
+                achievable = false;
+            } else {
+                months = Math.ceil(goalAmount / totalMonthlySavings);
+            }
+            
+            const years = Math.floor(months / 12);
+            const remainingMonths = months % 12;
+            
+            const resultDiv = document.getElementById('simSavingsGoalResult');
+            
+            if (achievable) {
+                resultDiv.innerHTML = `
+                    <div class="card" style="background: #d4edda;">
+                        <h3>✅ Objectif réalisable !</h3>
+                        <p><strong>Objectif :</strong> ${formatCurrency(goalAmount)}</p>
+                        <p><strong>Économie mensuelle totale :</strong> ${formatCurrency(totalMonthlySavings)}</p>
+                        <p><strong>Temps nécessaire :</strong> <span style="font-size: 1.3em; font-weight: bold;">${years > 0 ? years + ' an' + (years > 1 ? 's' : '') + ' et ' : ''}${remainingMonths} mois</span></p>
+                        <p><strong>Date d'atteinte estimée :</strong> ${new Date(now.getFullYear(), now.getMonth() + months, 1).toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'})}</p>
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="card" style="background: #f8d7da;">
+                        <h3>⚠️ Objectif non réalisable</h3>
+                        <p>Avec votre budget actuel, vous ne pouvez pas économiser suffisamment pour atteindre cet objectif.</p>
+                        <p><strong>Budget mensuel actuel :</strong> ${formatCurrency(currentMonthlySavings)}</p>
+                        <p><strong>Suggestion :</strong> Réduisez vos dépenses ou augmentez vos revenus.</p>
+                    </div>
+                `;
+            }
+        }
+
+        function simulateProjection() {
+            const months = parseInt(document.getElementById('simProjectionMonths').value);
+            
+            const now = new Date();
+            const recurring = calculateRecurringForMonth(now.getFullYear(), now.getMonth());
+            const oneTime = calculateOneTimeForMonth(now.getFullYear(), now.getMonth());
+            
+            const monthlySavings = recurring.revenue - recurring.expenses - recurring.savings - oneTime;
+            const totalSavings = monthlySavings * months;
+            
+            const resultDiv = document.getElementById('simProjectionResult');
+            
+            const years = Math.floor(months / 12);
+            const remainingMonths = months % 12;
+            const periodText = years > 0 ? `${years} an${years > 1 ? 's' : ''}${remainingMonths > 0 ? ' et ' + remainingMonths + ' mois' : ''}` : `${months} mois`;
+            
+            resultDiv.innerHTML = `
+                <div class="card" style="background: #d1ecf1;">
+                    <h3>📊 Projection sur ${periodText}</h3>
+                    <p><strong>Économies mensuelles actuelles :</strong> ${formatCurrency(monthlySavings)}</p>
+                    <p><strong>Total économisé dans ${periodText} :</strong> <span style="font-size: 1.5em; font-weight: bold; color: #0c5460;">${formatCurrency(totalSavings)}</span></p>
+                    <p><small>Cette projection est basée sur vos finances actuelles et ne prend pas en compte les changements futurs.</small></p>
+                </div>
+            `;
+        }
+
+        // PWA - Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                const swCode = `
+                    self.addEventListener('install', (e) => {
+                        e.waitUntil(
+                            caches.open('gestion-comptes-v1').then((cache) => {
+                                return cache.addAll(['/']);
+                            })
+                        );
+                    });
+                    
+                    self.addEventListener('fetch', (e) => {
+                        e.respondWith(
+                            caches.match(e.request).then((response) => {
+                                return response || fetch(e.request);
+                            })
+                        );
+                    });
+                `;
+                
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                const swUrl = URL.createObjectURL(blob);
+                
+                navigator.serviceWorker.register(swUrl).catch(() => {
+                    // Service worker non supporté ou bloqué
+                });
+            });
+        }
+
+        // Navigation avec mise à jour des graphiques
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                
+                btn.classList.add('active');
+                const page = document.getElementById(btn.dataset.page);
+                page.classList.add('active');
+                
+                // Mettre à jour les graphiques si on affiche la page graphiques
+                if (btn.dataset.page === 'charts') {
+                    setTimeout(updateCharts, 100);
+                }
+                
+                // Mettre à jour le budget si on affiche la page des dépenses ponctuelles
+                if (btn.dataset.page === 'oneTime') {
+                    updateDashboard();
+                }
+            });
+        });
+
         // Initialisation
         function init() {
+            loadTheme();
             displayRecurringItems();
             displayOneTimeExpenses();
             displaySavingsAccounts();
             updateSavingsAccountsSelect();
             updateDashboard();
+            setTimeout(updateCharts, 100);
         }
 
         // Démarrage de l'application
