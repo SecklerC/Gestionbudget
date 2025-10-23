@@ -1,0 +1,1426 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestion de Comptes</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        nav {
+            background: #f8f9fa;
+            padding: 0;
+            display: flex;
+            border-bottom: 2px solid #e0e0e0;
+            overflow-x: auto;
+        }
+
+        nav button {
+            flex: 1;
+            padding: 20px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.3s;
+            border-bottom: 3px solid transparent;
+            min-width: 150px;
+        }
+
+        nav button:hover {
+            background: #e9ecef;
+        }
+
+        nav button.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+            background: white;
+        }
+
+        .page {
+            display: none;
+            padding: 30px;
+            animation: fadeIn 0.3s;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .dashboard {
+            display: grid;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-box {
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .stat-box.positive {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .stat-box.negative {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .stat-box.neutral {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .stat-box h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .stat-box .amount {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        tr:hover {
+            background: #f8f9fa;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .actions button {
+            padding: 8px 15px;
+            font-size: 14px;
+        }
+
+        .monthly-breakdown {
+            margin-top: 20px;
+        }
+
+        .month-item {
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-item .month-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .month-item .month-amount {
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .month-item .month-amount.positive {
+            color: #11998e;
+        }
+
+        .month-item .month-amount.negative {
+            color: #eb3349;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 20px;
+            opacity: 0.3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge-revenue {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-expense {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .badge-saving {
+            background: #cfe2ff;
+            color: #084298;
+        }
+
+        .badge-monthly {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .badge-weekly {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #333;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1;
+        }
+
+        .item-card {
+            display: none;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .item-card-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .item-card-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .item-card-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .item-card-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .item-card-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        .item-card-actions button {
+            flex: 1;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            nav {
+                flex-wrap: wrap;
+            }
+
+            nav button {
+                min-width: 120px;
+                font-size: 14px;
+                padding: 15px 10px;
+            }
+
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .page {
+                padding: 15px;
+            }
+
+            table {
+                display: none;
+            }
+
+            .item-card {
+                display: block;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                margin-right: 0;
+                margin-bottom: 10px;
+            }
+
+            .modal-content {
+                padding: 20px;
+            }
+
+            .stat-box .amount {
+                font-size: 1.5em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>💰 Gestion de Comptes</h1>
+            <p>Gérez vos finances facilement</p>
+        </header>
+
+        <nav>
+            <button class="nav-btn active" data-page="dashboard">📊 Tableau de Bord</button>
+            <button class="nav-btn" data-page="recurring">🔄 Récurrents</button>
+            <button class="nav-btn" data-page="oneTime">💳 Dépenses Ponctuelles</button>
+            <button class="nav-btn" data-page="savingsAccounts">🏦 Comptes d'Économies</button>
+        </nav>
+
+        <!-- Page Tableau de Bord -->
+        <div id="dashboard" class="page active">
+            <div class="dashboard">
+                <div class="card">
+                    <h2>📅 Mois en cours</h2>
+                    <div class="stats">
+                        <div class="stat-box positive">
+                            <h3>Revenus</h3>
+                            <div class="amount" id="currentMonthRevenue">0€</div>
+                        </div>
+                        <div class="stat-box negative">
+                            <h3>Dépenses</h3>
+                            <div class="amount" id="currentMonthExpenses">0€</div>
+                        </div>
+                        <div class="stat-box neutral">
+                            <h3>Économies prévues</h3>
+                            <div class="amount" id="currentMonthPlannedSavings">0€</div>
+                        </div>
+                        <div class="stat-box neutral">
+                            <h3>Budget disponible</h3>
+                            <div class="amount" id="currentMonthBudget">0€</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>📈 Bilan Mensuel</h2>
+                    <div id="monthlyBreakdown" class="monthly-breakdown"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Récurrents -->
+        <div id="recurring" class="page">
+            <div class="card">
+                <h2>🔄 Revenus & Dépenses Récurrents</h2>
+                <button class="btn btn-primary" onclick="openRecurringModal()">➕ Ajouter un élément récurrent</button>
+                
+                <div id="recurringList">
+                    <table id="recurringTable">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Type</th>
+                                <th>Montant</th>
+                                <th>Fréquence</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recurringTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Dépenses Ponctuelles -->
+        <div id="oneTime" class="page">
+            <div class="card">
+                <h2>💳 Dépenses Ponctuelles</h2>
+                
+                <div class="stats" style="margin-bottom: 20px;">
+                    <div class="stat-box neutral">
+                        <h3>Budget disponible ce mois</h3>
+                        <div class="amount" id="availableBudget">0€</div>
+                    </div>
+                </div>
+
+                <button class="btn btn-primary" onclick="openOneTimeModal()">➕ Ajouter une dépense</button>
+                
+                <div id="oneTimeList">
+                    <table id="oneTimeTable">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Description</th>
+                                <th>Montant</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="oneTimeTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Page Comptes d'Économies -->
+        <div id="savingsAccounts" class="page">
+            <div class="card">
+                <h2>🏦 Comptes d'Économies</h2>
+                <button class="btn btn-primary" onclick="openSavingsAccountModal()">➕ Créer un compte</button>
+                
+                <div id="savingsAccountsList">
+                    <table id="savingsAccountsTable">
+                        <thead>
+                            <tr>
+                                <th>Nom du compte</th>
+                                <th>Objectif</th>
+                                <th>Montant actuel</th>
+                                <th>Progression</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="savingsAccountsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal pour Comptes d'Économies -->
+    <div id="savingsAccountModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="savingsAccountModalTitle">Créer un compte d'économies</h2>
+                <button class="close-modal" onclick="closeSavingsAccountModal()">×</button>
+            </div>
+            <form id="savingsAccountForm" onsubmit="saveSavingsAccount(event)">
+                <input type="hidden" id="savingsAccountId">
+                
+                <div class="form-group">
+                    <label for="savingsAccountName">Nom du compte</label>
+                    <input type="text" id="savingsAccountName" placeholder="Ex: Vacances, Voiture, Urgences..." required>
+                </div>
+
+                <div class="form-group">
+                    <label for="savingsAccountGoal">Objectif (€)</label>
+                    <input type="number" id="savingsAccountGoal" step="0.01" placeholder="Montant à atteindre" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="savingsAccountCurrent">Montant actuel (€)</label>
+                    <input type="number" id="savingsAccountCurrent" step="0.01" value="0" required>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeSavingsAccountModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pour ajouter de l'argent à un compte -->
+    <div id="addToSavingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>💰 Ajouter de l'argent</h2>
+                <button class="close-modal" onclick="closeAddToSavingsModal()">×</button>
+            </div>
+            <form id="addToSavingsForm" onsubmit="addToSavingsAccount(event)">
+                <input type="hidden" id="addToSavingsAccountId">
+                
+                <div class="form-group">
+                    <label for="addToSavingsAmount">Montant à ajouter (€)</label>
+                    <input type="number" id="addToSavingsAmount" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">✅ Ajouter</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeAddToSavingsModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pour Récurrents -->
+    <div id="recurringModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="recurringModalTitle">Ajouter un élément récurrent</h2>
+                <button class="close-modal" onclick="closeRecurringModal()">×</button>
+            </div>
+            <form id="recurringForm" onsubmit="saveRecurring(event)">
+                <input type="hidden" id="recurringId">
+                
+                <div class="form-group">
+                    <label for="recurringDescription">Description</label>
+                    <input type="text" id="recurringDescription" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="recurringType">Type</label>
+                    <select id="recurringType" required onchange="toggleSavingsAccountField()">
+                        <option value="revenue">Revenu</option>
+                        <option value="expense">Dépense</option>
+                        <option value="saving">Économie</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="savingsAccountGroup" style="display: none;">
+                    <label for="recurringSavingsAccount">Compte d'économies</label>
+                    <select id="recurringSavingsAccount">
+                        <option value="">Sélectionner un compte</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="recurringAmount">Montant (€)</label>
+                    <input type="number" id="recurringAmount" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="recurringFrequency">Fréquence</label>
+                    <select id="recurringFrequency" required>
+                        <option value="monthly">Mensuel</option>
+                        <option value="weekly">Hebdomadaire</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="recurringStartDate">Date de début</label>
+                    <input type="date" id="recurringStartDate" required>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeRecurringModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal pour Dépenses Ponctuelles -->
+    <div id="oneTimeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="oneTimeModalTitle">Ajouter une dépense ponctuelle</h2>
+                <button class="close-modal" onclick="closeOneTimeModal()">×</button>
+            </div>
+            <form id="oneTimeForm" onsubmit="saveOneTime(event)">
+                <input type="hidden" id="oneTimeId">
+                
+                <div class="form-group">
+                    <label for="oneTimeDate">Date</label>
+                    <input type="date" id="oneTimeDate" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="oneTimeDescription">Description</label>
+                    <input type="text" id="oneTimeDescription" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="oneTimeAmount">Montant (€)</label>
+                    <input type="number" id="oneTimeAmount" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <button type="submit" class="btn btn-success">💾 Enregistrer</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeOneTimeModal()">Annuler</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Gestion des données
+        let recurringItems = JSON.parse(localStorage.getItem('recurringItems')) || [];
+        let oneTimeExpenses = JSON.parse(localStorage.getItem('oneTimeExpenses')) || [];
+        let savingsAccounts = JSON.parse(localStorage.getItem('savingsAccounts')) || [];
+
+        // Navigation
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.page).classList.add('active');
+                
+                // Mettre à jour le budget si on affiche la page des dépenses ponctuelles
+                if (btn.dataset.page === 'oneTime') {
+                    updateDashboard();
+                }
+            });
+        });
+
+        // Fonctions utilitaires
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('fr-FR', { 
+                style: 'currency', 
+                currency: 'EUR' 
+            }).format(amount);
+        }
+
+        function getMonthName(monthIndex) {
+            const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                          'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            return months[monthIndex];
+        }
+
+        // Calcul des montants récurrents pour un mois
+        function calculateRecurringForMonth(year, month) {
+            let revenue = 0;
+            let expenses = 0;
+            let savings = 0;
+
+            const targetDate = new Date(year, month, 1);
+
+            recurringItems.forEach(item => {
+                const startDate = new Date(item.startDate || '2000-01-01');
+                
+                // Ne comptabiliser que si la date de début est avant ou pendant le mois ciblé
+                if (startDate <= new Date(year, month + 1, 0)) { // Dernier jour du mois
+                    let amount = parseFloat(item.amount);
+                    
+                    if (item.frequency === 'weekly') {
+                        // Approximation: 4.33 semaines par mois
+                        amount *= 4.33;
+                    }
+
+                    if (item.type === 'revenue') {
+                        revenue += amount;
+                    } else if (item.type === 'expense') {
+                        expenses += amount;
+                    } else if (item.type === 'saving') {
+                        savings += amount;
+                        
+                        // Mettre à jour le compte d'économies si c'est le mois en cours
+                        const now = new Date();
+                        if (year === now.getFullYear() && month === now.getMonth() && item.savingsAccountId) {
+                            const account = savingsAccounts.find(a => a.id === item.savingsAccountId);
+                            if (account) {
+                                // On vérifie si l'économie n'a pas déjà été ajoutée ce mois-ci
+                                // (pour éviter les doublons lors des multiples appels à updateDashboard)
+                                const lastUpdate = localStorage.getItem(`lastUpdate_${item.id}`);
+                                const currentMonth = `${year}-${month}`;
+                                
+                                if (lastUpdate !== currentMonth) {
+                                    account.current += amount;
+                                    localStorage.setItem(`lastUpdate_${item.id}`, currentMonth);
+                                    localStorage.setItem('savingsAccounts', JSON.stringify(savingsAccounts));
+                                    displaySavingsAccounts();
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            return { revenue, expenses, savings };
+        }
+
+        // Calcul des dépenses ponctuelles pour un mois
+        function calculateOneTimeForMonth(year, month) {
+            let total = 0;
+            
+            oneTimeExpenses.forEach(expense => {
+                const expenseDate = new Date(expense.date);
+                if (expenseDate.getFullYear() === year && expenseDate.getMonth() === month) {
+                    total += parseFloat(expense.amount);
+                }
+            });
+
+            return total;
+        }
+
+        // Mise à jour du tableau de bord
+        function updateDashboard() {
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const currentMonth = now.getMonth();
+
+            // Mois en cours
+            const recurring = calculateRecurringForMonth(currentYear, currentMonth);
+            const oneTime = calculateOneTimeForMonth(currentYear, currentMonth);
+            
+            const totalRevenue = recurring.revenue;
+            const totalExpenses = recurring.expenses + oneTime;
+            const plannedSavings = recurring.savings;
+            const budget = totalRevenue - recurring.expenses - plannedSavings - oneTime;
+
+            document.getElementById('currentMonthRevenue').textContent = formatCurrency(totalRevenue);
+            document.getElementById('currentMonthExpenses').textContent = formatCurrency(totalExpenses);
+            document.getElementById('currentMonthPlannedSavings').textContent = formatCurrency(plannedSavings);
+            document.getElementById('currentMonthBudget').textContent = formatCurrency(budget);
+
+            // Mise à jour du budget disponible dans la page dépenses ponctuelles
+            const availableBudget = totalRevenue - recurring.expenses - plannedSavings - oneTime;
+            const budgetElement = document.getElementById('availableBudget');
+            if (budgetElement) {
+                budgetElement.textContent = formatCurrency(availableBudget);
+            }
+
+            // Bilan mensuel (12 derniers mois)
+            const breakdown = document.getElementById('monthlyBreakdown');
+            breakdown.innerHTML = '';
+
+            for (let i = 11; i >= 0; i--) {
+                const date = new Date(currentYear, currentMonth - i, 1);
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                
+                const monthRecurring = calculateRecurringForMonth(year, month);
+                const monthOneTime = calculateOneTimeForMonth(year, month);
+                
+                const monthRevenue = monthRecurring.revenue;
+                const monthExpenses = monthRecurring.expenses + monthOneTime;
+                const monthSavings = monthRecurring.savings;
+                const monthBalance = monthRevenue - monthExpenses - monthSavings;
+
+                const monthItem = document.createElement('div');
+                monthItem.className = 'month-item';
+                monthItem.innerHTML = `
+                    <span class="month-name">${getMonthName(month)} ${year}</span>
+                    <span class="month-amount ${monthBalance >= 0 ? 'positive' : 'negative'}">
+                        ${formatCurrency(monthBalance)}
+                    </span>
+                `;
+                breakdown.appendChild(monthItem);
+            }
+        }
+
+        // Gestion des éléments récurrents
+        function openRecurringModal(id = null) {
+            const modal = document.getElementById('recurringModal');
+            const form = document.getElementById('recurringForm');
+            const title = document.getElementById('recurringModalTitle');
+
+            form.reset();
+            updateSavingsAccountsSelect();
+
+            if (id) {
+                const item = recurringItems.find(i => i.id === id);
+                if (item) {
+                    title.textContent = 'Modifier un élément récurrent';
+                    document.getElementById('recurringId').value = item.id;
+                    document.getElementById('recurringDescription').value = item.description;
+                    document.getElementById('recurringType').value = item.type;
+                    document.getElementById('recurringAmount').value = item.amount;
+                    document.getElementById('recurringFrequency').value = item.frequency;
+                    document.getElementById('recurringStartDate').value = item.startDate || new Date().toISOString().split('T')[0];
+                    
+                    if (item.savingsAccountId) {
+                        document.getElementById('recurringSavingsAccount').value = item.savingsAccountId;
+                    }
+                    
+                    toggleSavingsAccountField();
+                }
+            } else {
+                title.textContent = 'Ajouter un élément récurrent';
+                document.getElementById('recurringId').value = '';
+                document.getElementById('recurringStartDate').value = new Date().toISOString().split('T')[0];
+                toggleSavingsAccountField();
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeRecurringModal() {
+            document.getElementById('recurringModal').classList.remove('active');
+        }
+
+        function saveRecurring(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('recurringId').value;
+            const description = document.getElementById('recurringDescription').value;
+            const type = document.getElementById('recurringType').value;
+            const amount = document.getElementById('recurringAmount').value;
+            const frequency = document.getElementById('recurringFrequency').value;
+            const startDate = document.getElementById('recurringStartDate').value;
+            const savingsAccountId = document.getElementById('recurringSavingsAccount').value || null;
+
+            if (id) {
+                // Modification
+                const index = recurringItems.findIndex(i => i.id === id);
+                if (index !== -1) {
+                    recurringItems[index] = { id, description, type, amount, frequency, startDate, savingsAccountId };
+                }
+            } else {
+                // Ajout
+                const newItem = {
+                    id: Date.now().toString(),
+                    description,
+                    type,
+                    amount,
+                    frequency,
+                    startDate,
+                    savingsAccountId
+                };
+                recurringItems.push(newItem);
+            }
+
+            localStorage.setItem('recurringItems', JSON.stringify(recurringItems));
+            closeRecurringModal();
+            displayRecurringItems();
+            updateDashboard();
+        }
+
+        function deleteRecurring(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cet élément ?')) {
+                recurringItems = recurringItems.filter(i => i.id !== id);
+                localStorage.setItem('recurringItems', JSON.stringify(recurringItems));
+                displayRecurringItems();
+                updateDashboard();
+            }
+        }
+
+        function displayRecurringItems() {
+            const tbody = document.getElementById('recurringTableBody');
+            const container = document.getElementById('recurringList');
+            
+            tbody.innerHTML = '';
+            
+            // Supprimer les anciennes cartes mobiles si elles existent
+            const oldCards = container.querySelectorAll('.item-card');
+            oldCards.forEach(card => card.remove());
+
+            if (recurringItems.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div>Aucun élément récurrent. Cliquez sur "Ajouter" pour commencer.</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            recurringItems.forEach(item => {
+                let typeLabel = 'Revenu';
+                let badgeClass = 'revenue';
+                
+                if (item.type === 'expense') {
+                    typeLabel = 'Dépense';
+                    badgeClass = 'expense';
+                } else if (item.type === 'saving') {
+                    typeLabel = 'Économie';
+                    badgeClass = 'saving';
+                }
+                
+                const frequencyLabel = item.frequency === 'monthly' ? 'Mensuel' : 'Hebdomadaire';
+                
+                // Version tableau (desktop)
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${item.description}</td>
+                    <td><span class="badge badge-${badgeClass}">
+                        ${typeLabel}
+                    </span></td>
+                    <td><strong>${formatCurrency(item.amount)}</strong></td>
+                    <td><span class="badge badge-${item.frequency === 'monthly' ? 'monthly' : 'weekly'}">
+                        ${frequencyLabel}
+                    </span></td>
+                    <td class="actions">
+                        <button class="btn btn-secondary" onclick="openRecurringModal('${item.id}')">✏️ Modifier</button>
+                        <button class="btn btn-danger" onclick="deleteRecurring('${item.id}')">🗑️ Supprimer</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+                
+                // Version carte (mobile)
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div class="item-card-row">
+                        <span class="item-card-label">Description</span>
+                        <span class="item-card-value">${item.description}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Type</span>
+                        <span class="badge badge-${badgeClass}">${typeLabel}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Montant</span>
+                        <span class="item-card-value" style="font-size: 1.2em; color: #667eea;">${formatCurrency(item.amount)}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Fréquence</span>
+                        <span class="badge badge-${item.frequency === 'monthly' ? 'monthly' : 'weekly'}">${frequencyLabel}</span>
+                    </div>
+                    <div class="item-card-actions">
+                        <button class="btn btn-secondary" onclick="openRecurringModal('${item.id}')">✏️ Modifier</button>
+                        <button class="btn btn-danger" onclick="deleteRecurring('${item.id}')">🗑️ Supprimer</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Gestion des dépenses ponctuelles
+        function openOneTimeModal(id = null) {
+            const modal = document.getElementById('oneTimeModal');
+            const form = document.getElementById('oneTimeForm');
+            const title = document.getElementById('oneTimeModalTitle');
+
+            form.reset();
+
+            if (id) {
+                const expense = oneTimeExpenses.find(e => e.id === id);
+                if (expense) {
+                    title.textContent = 'Modifier une dépense ponctuelle';
+                    document.getElementById('oneTimeId').value = expense.id;
+                    document.getElementById('oneTimeDate').value = expense.date;
+                    document.getElementById('oneTimeDescription').value = expense.description;
+                    document.getElementById('oneTimeAmount').value = expense.amount;
+                }
+            } else {
+                title.textContent = 'Ajouter une dépense ponctuelle';
+                document.getElementById('oneTimeId').value = '';
+                document.getElementById('oneTimeDate').value = new Date().toISOString().split('T')[0];
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeOneTimeModal() {
+            document.getElementById('oneTimeModal').classList.remove('active');
+        }
+
+        function saveOneTime(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('oneTimeId').value;
+            const date = document.getElementById('oneTimeDate').value;
+            const description = document.getElementById('oneTimeDescription').value;
+            const amount = document.getElementById('oneTimeAmount').value;
+
+            if (id) {
+                // Modification
+                const index = oneTimeExpenses.findIndex(e => e.id === id);
+                if (index !== -1) {
+                    oneTimeExpenses[index] = { id, date, description, amount };
+                }
+            } else {
+                // Ajout
+                const newExpense = {
+                    id: Date.now().toString(),
+                    date,
+                    description,
+                    amount
+                };
+                oneTimeExpenses.push(newExpense);
+            }
+
+            localStorage.setItem('oneTimeExpenses', JSON.stringify(oneTimeExpenses));
+            closeOneTimeModal();
+            displayOneTimeExpenses();
+            updateDashboard();
+        }
+
+        function deleteOneTime(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer cette dépense ?')) {
+                oneTimeExpenses = oneTimeExpenses.filter(e => e.id !== id);
+                localStorage.setItem('oneTimeExpenses', JSON.stringify(oneTimeExpenses));
+                displayOneTimeExpenses();
+                updateDashboard();
+            }
+        }
+
+        function displayOneTimeExpenses() {
+            const tbody = document.getElementById('oneTimeTableBody');
+            const container = document.getElementById('oneTimeList');
+            
+            tbody.innerHTML = '';
+            
+            // Supprimer les anciennes cartes mobiles si elles existent
+            const oldCards = container.querySelectorAll('.item-card');
+            oldCards.forEach(card => card.remove());
+
+            if (oneTimeExpenses.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            <div>Aucune dépense ponctuelle. Cliquez sur "Ajouter" pour commencer.</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Trier par date décroissante
+            const sortedExpenses = [...oneTimeExpenses].sort((a, b) => 
+                new Date(b.date) - new Date(a.date)
+            );
+
+            sortedExpenses.forEach(expense => {
+                const expenseDate = new Date(expense.date);
+                const formattedDate = expenseDate.toLocaleDateString('fr-FR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+
+                // Version tableau (desktop)
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${formattedDate}</td>
+                    <td>${expense.description}</td>
+                    <td><strong>${formatCurrency(expense.amount)}</strong></td>
+                    <td class="actions">
+                        <button class="btn btn-secondary" onclick="openOneTimeModal('${expense.id}')">✏️ Modifier</button>
+                        <button class="btn btn-danger" onclick="deleteOneTime('${expense.id}')">🗑️ Supprimer</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+                
+                // Version carte (mobile)
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div class="item-card-row">
+                        <span class="item-card-label">Date</span>
+                        <span class="item-card-value">${formattedDate}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Description</span>
+                        <span class="item-card-value">${expense.description}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Montant</span>
+                        <span class="item-card-value" style="font-size: 1.2em; color: #eb3349;">${formatCurrency(expense.amount)}</span>
+                    </div>
+                    <div class="item-card-actions">
+                        <button class="btn btn-secondary" onclick="openOneTimeModal('${expense.id}')">✏️ Modifier</button>
+                        <button class="btn btn-danger" onclick="deleteOneTime('${expense.id}')">🗑️ Supprimer</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Gestion des comptes d'économies
+        function openSavingsAccountModal(id = null) {
+            const modal = document.getElementById('savingsAccountModal');
+            const form = document.getElementById('savingsAccountForm');
+            const title = document.getElementById('savingsAccountModalTitle');
+
+            form.reset();
+
+            if (id) {
+                const account = savingsAccounts.find(a => a.id === id);
+                if (account) {
+                    title.textContent = 'Modifier le compte';
+                    document.getElementById('savingsAccountId').value = account.id;
+                    document.getElementById('savingsAccountName').value = account.name;
+                    document.getElementById('savingsAccountGoal').value = account.goal;
+                    document.getElementById('savingsAccountCurrent').value = account.current;
+                }
+            } else {
+                title.textContent = 'Créer un compte d\'économies';
+                document.getElementById('savingsAccountId').value = '';
+            }
+
+            modal.classList.add('active');
+        }
+
+        function closeSavingsAccountModal() {
+            document.getElementById('savingsAccountModal').classList.remove('active');
+        }
+
+        function saveSavingsAccount(event) {
+            event.preventDefault();
+
+            const id = document.getElementById('savingsAccountId').value;
+            const name = document.getElementById('savingsAccountName').value;
+            const goal = parseFloat(document.getElementById('savingsAccountGoal').value);
+            const current = parseFloat(document.getElementById('savingsAccountCurrent').value);
+
+            if (id) {
+                const index = savingsAccounts.findIndex(a => a.id === id);
+                if (index !== -1) {
+                    savingsAccounts[index] = { ...savingsAccounts[index], name, goal, current };
+                }
+            } else {
+                const newAccount = {
+                    id: Date.now().toString(),
+                    name,
+                    goal,
+                    current
+                };
+                savingsAccounts.push(newAccount);
+            }
+
+            localStorage.setItem('savingsAccounts', JSON.stringify(savingsAccounts));
+            closeSavingsAccountModal();
+            displaySavingsAccounts();
+            updateSavingsAccountsSelect();
+        }
+
+        function deleteSavingsAccount(id) {
+            if (confirm('Êtes-vous sûr de vouloir supprimer ce compte ?')) {
+                savingsAccounts = savingsAccounts.filter(a => a.id !== id);
+                localStorage.setItem('savingsAccounts', JSON.stringify(savingsAccounts));
+                displaySavingsAccounts();
+                updateSavingsAccountsSelect();
+            }
+        }
+
+        function openAddToSavingsModal(accountId) {
+            document.getElementById('addToSavingsAccountId').value = accountId;
+            document.getElementById('addToSavingsModal').classList.add('active');
+        }
+
+        function closeAddToSavingsModal() {
+            document.getElementById('addToSavingsModal').classList.remove('active');
+        }
+
+        function addToSavingsAccount(event) {
+            event.preventDefault();
+
+            const accountId = document.getElementById('addToSavingsAccountId').value;
+            const amount = parseFloat(document.getElementById('addToSavingsAmount').value);
+
+            const account = savingsAccounts.find(a => a.id === accountId);
+            if (account) {
+                account.current += amount;
+                localStorage.setItem('savingsAccounts', JSON.stringify(savingsAccounts));
+                closeAddToSavingsModal();
+                displaySavingsAccounts();
+            }
+        }
+
+        function displaySavingsAccounts() {
+            const tbody = document.getElementById('savingsAccountsTableBody');
+            const container = document.getElementById('savingsAccountsList');
+            
+            tbody.innerHTML = '';
+            
+            const oldCards = container.querySelectorAll('.item-card');
+            oldCards.forEach(card => card.remove());
+
+            if (savingsAccounts.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" class="empty-state">
+                            <div>Aucun compte d'économies. Créez-en un pour commencer.</div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            savingsAccounts.forEach(account => {
+                const progress = Math.min((account.current / account.goal) * 100, 100);
+                
+                // Version tableau (desktop)
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td><strong>${account.name}</strong></td>
+                    <td>${formatCurrency(account.goal)}</td>
+                    <td>${formatCurrency(account.current)}</td>
+                    <td>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                            <div class="progress-text">${progress.toFixed(0)}%</div>
+                        </div>
+                    </td>
+                    <td class="actions">
+                        <button class="btn btn-success" onclick="openAddToSavingsModal('${account.id}')">💰 Ajouter</button>
+                        <button class="btn btn-secondary" onclick="openSavingsAccountModal('${account.id}')">✏️ Modifier</button>
+                        <button class="btn btn-danger" onclick="deleteSavingsAccount('${account.id}')">🗑️ Supprimer</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+                
+                // Version carte (mobile)
+                const card = document.createElement('div');
+                card.className = 'item-card';
+                card.innerHTML = `
+                    <div class="item-card-row">
+                        <span class="item-card-label">Nom</span>
+                        <span class="item-card-value" style="font-size: 1.1em;">${account.name}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Objectif</span>
+                        <span class="item-card-value">${formatCurrency(account.goal)}</span>
+                    </div>
+                    <div class="item-card-row">
+                        <span class="item-card-label">Montant actuel</span>
+                        <span class="item-card-value" style="color: #11998e; font-size: 1.2em;">${formatCurrency(account.current)}</span>
+                    </div>
+                    <div style="margin: 15px 0;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${progress}%"></div>
+                            <div class="progress-text">${progress.toFixed(0)}%</div>
+                        </div>
+                    </div>
+                    <div class="item-card-actions">
+                        <button class="btn btn-success" onclick="openAddToSavingsModal('${account.id}')">💰 Ajouter</button>
+                        <button class="btn btn-secondary" onclick="openSavingsAccountModal('${account.id}')">✏️ Modifier</button>
+                        <button class="btn btn-danger" onclick="deleteSavingsAccount('${account.id}')">🗑️ Supprimer</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function updateSavingsAccountsSelect() {
+            const select = document.getElementById('recurringSavingsAccount');
+            select.innerHTML = '<option value="">Aucun compte spécifique</option>';
+            
+            savingsAccounts.forEach(account => {
+                const option = document.createElement('option');
+                option.value = account.id;
+                option.textContent = account.name;
+                select.appendChild(option);
+            });
+        }
+
+        function toggleSavingsAccountField() {
+            const type = document.getElementById('recurringType').value;
+            const group = document.getElementById('savingsAccountGroup');
+            
+            if (type === 'saving') {
+                group.style.display = 'block';
+            } else {
+                group.style.display = 'none';
+            }
+        }
+
+        // Initialisation
+        function init() {
+            displayRecurringItems();
+            displayOneTimeExpenses();
+            displaySavingsAccounts();
+            updateSavingsAccountsSelect();
+            updateDashboard();
+        }
+
+        // Démarrage de l'application
+        init();
+    </script>
+</body>
+</html>
